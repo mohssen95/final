@@ -24,6 +24,21 @@ public class TrafficReport extends Report implements Serializable {
     private TrafficType trafficType;
     private int length;
 
+    public TrafficType getTrafficType() {
+        return trafficType;
+    }
+
+    public void setTrafficType(TrafficType trafficType) {
+        this.trafficType = trafficType;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public void setLength(int length) {
+        this.length = length;
+    }
 //    @JdbcTypeCode(SqlTypes.JSON)
 //    private ExtraFieldsTraffic extra;
 
