@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -41,6 +42,37 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     InteractionRepository interactionRepository;
 
+
+    @Override
+    public Integer addReportByUser(ReportDto reportDto) {
+
+        if (reportDto == null || reportDto.getReportType() == null) {
+            return HttpStatus.BAD_REQUEST.value();
+        }
+
+        RAtomicLong fromCache = getKeyIdFromCache(reportDto);
+
+        if (fromCache.isExists()) {
+            // todo handle
+            return HttpStatus.CONFLICT.value();
+        }
+
+        User user = userRepository.findById(reportDto.getSenderId()).get();
+
+        if (operatorConfirmationNeeded(reportDto, user)) {
+            fromCache.set(0);
+            fromCache.expire(Duration.of(5, ChronoUnit.MINUTES));
+            RQueue<ReportDto> reportsToBeHandled = redissonClient.getQueue("reportsQueue");
+
+            reportsToBeHandled.add(reportDto);
+            return HttpStatus.ACCEPTED.value();
+        }
+
+        cacheAndSaveTrustedTraffic(reportDto, fromCache);
+
+        return HttpStatus.CREATED.value();
+
+    }
 
     @Override
     public Integer addReportByOperator(ReportDto reportDto) {
@@ -72,37 +104,6 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<Report> getAll() {
         return reportRepository.findAll();
-    }
-
-    @Override
-    public Integer addReportByUser(ReportDto reportDto) {
-
-        if (reportDto == null || reportDto.getReportType() == null) {
-            return HttpStatus.BAD_REQUEST.value();
-        }
-
-        RAtomicLong fromCache = getKeyIdFromCache(reportDto);
-
-        if (fromCache.isExists()) {
-            // todo handle
-            return HttpStatus.CONFLICT.value();
-        }
-
-        User user = userRepository.findById(reportDto.getSenderId()).get();
-
-        if (operatorConfirmationNeeded(reportDto, user)) {
-            fromCache.set(0);
-            fromCache.expire(Duration.of(5, ChronoUnit.MINUTES));
-            RQueue<ReportDto> reportsToBeHandled = redissonClient.getQueue("reportsQueue");
-
-            reportsToBeHandled.add(reportDto);
-            return HttpStatus.ACCEPTED.value();
-        }
-
-        cacheAndSaveTrustedTraffic(reportDto, fromCache);
-
-        return HttpStatus.CREATED.value();
-
     }
 
     private static boolean operatorConfirmationNeeded(ReportDto reportDto, User user) {
@@ -149,11 +150,20 @@ public class ReportServiceImpl implements ReportService {
         return HttpStatus.CREATED.value();
     }
 
+
+
+    @Override
+    public Timestamp getMostAccidentFullHour(String date) {
+        Timestamp mostAccidents = reportRepository.getMostAccidents(Timestamp.valueOf(date));
+        if(mostAccidents==null)return null;
+        return mostAccidents;
+    }
+
     private Report cacheAndSaveTrustedTraffic(ReportDto reportDto, RAtomicLong fromCache) {
         //todo mapstruct
         Report newTraffic = new Report();
         newTraffic.setGeom(new Point(reportDto.getGeom().x, reportDto.getGeom().y));
-        newTraffic.setReportType(ReportType.TRAFFIC);
+        newTraffic.setReportType(reportDto.getReportType());
         newTraffic.setSenderId(reportDto.getSenderId());
         newTraffic.setExtra(reportDto.getExtra());
 

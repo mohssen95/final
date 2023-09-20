@@ -8,9 +8,11 @@ import org.neshan.apireportservice.entity.Report;
 import org.neshan.apireportservice.service.AccidentService;
 import org.neshan.apireportservice.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 
@@ -61,6 +63,19 @@ public class ReportApi {
     public ResponseEntity<Integer>addInteractionByUser(@RequestBody InteractionDto interactionDto){
         return ResponseEntity.status(reportService.interactWithReport(interactionDto)).build();
     }
+
+    @GetMapping("/mostAccident")
+    public ResponseEntity<String> getMostAccidentFullHour(@RequestParam("date") String date){
+        Timestamp hour = reportService.getMostAccidentFullHour(date);
+
+        if (hour==null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.OK.value()).body(hour.toString());
+
+    }
+
 
 
 }

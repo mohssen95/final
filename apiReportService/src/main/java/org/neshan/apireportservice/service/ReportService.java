@@ -4,6 +4,7 @@ import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
 import org.neshan.apireportservice.entity.Report;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 public interface ReportService {
@@ -18,4 +19,5 @@ public interface ReportService {
 
     Integer interactWithReport(InteractionDto interactionDto);
 
+    Timestamp getMostAccidentFullHour(String date);
 }

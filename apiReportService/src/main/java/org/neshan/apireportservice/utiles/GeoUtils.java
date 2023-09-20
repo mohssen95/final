@@ -6,7 +6,6 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.neshan.apireportservice.dto.ReportDto;
-import org.neshan.apireportservice.entity.model.enums.ReportType;
 import org.springframework.stereotype.Component;
 
 
@@ -60,7 +59,7 @@ public class GeoUtils {
 
     public String generateHashKey(ReportDto reportDto, int zoom) {
 
-        return ReportType.TRAFFIC + "/" + latLonToTileZXY(reportDto.getGeom(), zoom);
+        return reportDto.getReportType() + "/" + latLonToTileZXY(reportDto.getGeom(), zoom);
 
     }
 }
