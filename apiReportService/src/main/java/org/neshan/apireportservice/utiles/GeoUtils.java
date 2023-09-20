@@ -5,11 +5,9 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.neshan.apireportservice.dto.TrafficDto;
+import org.neshan.apireportservice.dto.ReportDto;
 import org.neshan.apireportservice.entity.model.enums.ReportType;
 import org.springframework.stereotype.Component;
-
-import java.sql.Timestamp;
 
 
 @Component
@@ -17,8 +15,6 @@ public class GeoUtils {
 
     public Point coordinateToPoint(Coordinate coordinate) throws ParseException {
         String wkt = "POINT (" + coordinate.x + " " + coordinate.y + ")";
-        System.out.println(wkt);
-        System.out.println((Point) wktToGeometry(wkt));
         return (Point) wktToGeometry("POINT (1 1)");
     }
 
@@ -29,7 +25,6 @@ public class GeoUtils {
     public String latLonToTileZXY(Coordinate coordinate, int z) {
         double lat = coordinate.x;
         double lon = coordinate.y;
-        System.out.println(lat);
         final int MIN_ZOOM_LEVEL = 0;
         final int MAX_ZOOM_LEVEL = 22;
         final double MIN_LAT = -85.051128779807;
@@ -63,9 +58,9 @@ public class GeoUtils {
     }
 
 
-    public String generateHashKey(TrafficDto trafficDto, int zoom) {
+    public String generateHashKey(ReportDto reportDto, int zoom) {
 
-        return ReportType.TRAFFIC + "/" + latLonToTileZXY(trafficDto.getGeom(), zoom);
+        return ReportType.TRAFFIC + "/" + latLonToTileZXY(reportDto.getGeom(), zoom);
 
     }
 }

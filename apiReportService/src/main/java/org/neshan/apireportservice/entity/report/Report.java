@@ -7,11 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.neshan.apireportservice.entity.model.enums.ReportType;
 import org.postgis.Point;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Entity
@@ -21,7 +25,7 @@ import java.sql.Timestamp;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class Report implements Serializable {
+public class Report implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -36,15 +40,12 @@ public abstract class Report implements Serializable {
     @CreationTimestamp
     private Timestamp timestamp;
 
-    /*
-    * happen in n'th 2-min part of day
-    * each day divided to 720 parts of 2min seq
-    */
-    private int timeSeq;
-
     @Enumerated(EnumType.STRING)
     ReportType reportType;
 
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> extra = new HashMap<>();
 
 
 }

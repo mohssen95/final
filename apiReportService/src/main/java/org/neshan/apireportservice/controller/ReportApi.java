@@ -2,49 +2,59 @@ package org.neshan.apireportservice.controller;
 
 
 import org.locationtech.jts.io.ParseException;
-import org.neshan.apireportservice.dto.TrafficDto;
-import org.neshan.apireportservice.entity.report.TrafficReport;
-import org.neshan.apireportservice.service.impl.AccidentServiceImpl;
-import org.neshan.apireportservice.service.impl.TrafficServiceImpl;
+import org.neshan.apireportservice.dto.ReportDto;
+import org.neshan.apireportservice.entity.report.Report;
+import org.neshan.apireportservice.service.AccidentService;
+import org.neshan.apireportservice.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 
-
 @RestController
-@RequestMapping(path = "/reports" )
+@RequestMapping(path = "/reports")
 public class ReportApi {
 
 
     @Autowired
-    TrafficServiceImpl trafficService;
+    ReportService reportService;
     @Autowired
-    AccidentServiceImpl accidentService;
+    AccidentService accidentService;
 
 
-    @PostMapping("/traffics")
-    public TrafficReport addReportByUser(@RequestBody TrafficDto trafficDto) throws ParseException {
-        return trafficService.addTrafficByUser(trafficDto);
+    @PostMapping("")
+    public ResponseEntity<Void> addReportByUser(@RequestBody ReportDto reportDto) throws ParseException {
+        return ResponseEntity.status(reportService.addReportByUser(reportDto))
+                .build();
     }
 
 
-    @PostMapping("/traffics/operator")
-    public TrafficReport addReportByOperator(@RequestBody TrafficDto trafficReport) throws ParseException {
-        return trafficService.addTrafficByOperator(trafficReport);
+    @PostMapping("/operator")
+    public ResponseEntity<Void> addReportByOperator(@RequestBody ReportDto reportDto) throws ParseException {
+        return ResponseEntity.status(reportService.addReportByOperator(reportDto))
+                .build();
     }
 
-    @GetMapping("/traffics/operator")
-    public TrafficDto getReportByOperator() {
-        return trafficService.pickNextTrafficReport();
+    @GetMapping("/operator")
+    public ResponseEntity<ReportDto> getReportByOperator() {
+        ReportDto result = reportService.pickNextReport();
+
+        if (result == null) {
+            return ResponseEntity.status(404)
+                    .build();
+        }
+
+        return ResponseEntity.status(200)
+                .body(result);
     }
 
-    @GetMapping("/traffics")
-    public List<TrafficReport> getAllReports(){
-        return trafficService.getAll();
+    @GetMapping
+    public ResponseEntity<List<Report>> getAllReports() {
+        List<Report> result = reportService.getAll();
+        return ResponseEntity.status(200).body(result);
     }
-
-
 
 
 }
