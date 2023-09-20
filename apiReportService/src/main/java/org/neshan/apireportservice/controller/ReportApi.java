@@ -2,8 +2,9 @@ package org.neshan.apireportservice.controller;
 
 
 import org.locationtech.jts.io.ParseException;
+import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
-import org.neshan.apireportservice.entity.report.Report;
+import org.neshan.apireportservice.entity.Report;
 import org.neshan.apireportservice.service.AccidentService;
 import org.neshan.apireportservice.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,11 @@ public class ReportApi {
     public ResponseEntity<List<Report>> getAllReports() {
         List<Report> result = reportService.getAll();
         return ResponseEntity.status(200).body(result);
+    }
+
+    @PostMapping("/interaction")
+    public ResponseEntity<Integer>addInteractionByUser(@RequestBody InteractionDto interactionDto){
+        return ResponseEntity.status(reportService.interactWithReport(interactionDto)).build();
     }
 
 

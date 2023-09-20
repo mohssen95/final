@@ -1,4 +1,4 @@
-package org.neshan.apireportservice.entity.report;
+package org.neshan.apireportservice.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -15,7 +15,9 @@ import org.postgis.Point;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 
 @Entity
@@ -43,6 +45,8 @@ public class Report implements Serializable {
     @Enumerated(EnumType.STRING)
     ReportType reportType;
 
+    @OneToMany(mappedBy = "report")
+    private Set<Interaction> interactions=new HashSet<>();
 
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> extra = new HashMap<>();

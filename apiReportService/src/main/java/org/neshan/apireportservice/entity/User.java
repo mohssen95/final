@@ -1,14 +1,20 @@
 package org.neshan.apireportservice.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.neshan.apireportservice.entity.model.enums.Role;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "user_tb")
 @RequiredArgsConstructor
 @Setter
 @Getter
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -25,6 +31,9 @@ public class User {
 
     @Column(name = "role")
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private Set<Interaction> interactions=new HashSet<>();
 
 
 }

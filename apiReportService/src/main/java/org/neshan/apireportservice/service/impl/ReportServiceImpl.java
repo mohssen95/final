@@ -1,13 +1,16 @@
 package org.neshan.apireportservice.service.impl;
 
 
+import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
+import org.neshan.apireportservice.entity.Interaction;
+import org.neshan.apireportservice.entity.Report;
 import org.neshan.apireportservice.entity.User;
 import org.neshan.apireportservice.entity.model.enums.ReportType;
 import org.neshan.apireportservice.entity.model.enums.TrafficLevel;
-import org.neshan.apireportservice.entity.report.Report;
+import org.neshan.apireportservice.repo.InteractionRepository;
 import org.neshan.apireportservice.repo.ReportRepository;
-import org.neshan.apireportservice.repo.UserRepo;
+import org.neshan.apireportservice.repo.UserRepository;
 import org.neshan.apireportservice.service.ReportService;
 import org.neshan.apireportservice.utiles.GeoUtils;
 import org.postgis.Point;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -33,7 +37,9 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     RedissonClient redissonClient;
     @Autowired
-    UserRepo userRepo;
+    UserRepository userRepository;
+    @Autowired
+    InteractionRepository interactionRepository;
 
 
     @Override
@@ -82,7 +88,7 @@ public class ReportServiceImpl implements ReportService {
             return HttpStatus.CONFLICT.value();
         }
 
-        User user = userRepo.findById(reportDto.getSenderId()).get();
+        User user = userRepository.findById(reportDto.getSenderId()).get();
 
         if (operatorConfirmationNeeded(reportDto, user)) {
             fromCache.set(0);
@@ -109,6 +115,38 @@ public class ReportServiceImpl implements ReportService {
     public ReportDto pickNextReport() {
         RQueue<ReportDto> reportsToBeHandled = redissonClient.getQueue("reportsQueue");
         return reportsToBeHandled.poll();
+    }
+
+    @Override
+    public Integer interactWithReport(InteractionDto interactionDto) {
+
+        if (interactionDto == null
+                || interactionDto.getInteractionType() == null
+                || interactionDto.getReportId() == null
+                || interactionDto.getUserId() == null) {
+
+            return HttpStatus.BAD_REQUEST.value();
+        }
+
+        Optional<User> userOptional = userRepository.findById(interactionDto.getUserId());
+
+        if (userOptional.isEmpty()) {
+            return HttpStatus.NOT_FOUND.value();
+        }
+
+        Optional<Report> reportOptional = reportRepository.findById(interactionDto.getReportId());
+        if (reportOptional.isEmpty()) {
+            return HttpStatus.NOT_FOUND.value();
+        }
+
+        Interaction interaction = new Interaction();
+        interaction.setUser(userOptional.get());
+        interaction.setReport(reportOptional.get());
+        interaction.setInteractionType(interactionDto.getInteractionType());
+
+        interactionRepository.save(interaction);
+
+        return HttpStatus.CREATED.value();
     }
 
     private Report cacheAndSaveTrustedTraffic(ReportDto reportDto, RAtomicLong fromCache) {

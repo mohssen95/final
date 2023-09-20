@@ -1,6 +1,6 @@
 //package org.neshan.apireportservice.operator;
 //
-//import org.neshan.apireportservice.entity.report.Report;
+//import org.neshan.apireportservice.entity.Report;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //import org.springframework.amqp.rabbit.annotation.RabbitListener;

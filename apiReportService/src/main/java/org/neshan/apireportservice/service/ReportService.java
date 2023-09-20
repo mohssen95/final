@@ -1,7 +1,8 @@
 package org.neshan.apireportservice.service;
 
+import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
-import org.neshan.apireportservice.entity.report.Report;
+import org.neshan.apireportservice.entity.Report;
 
 import java.util.List;
 
@@ -14,4 +15,7 @@ public interface ReportService {
     Integer addReportByUser(ReportDto reportDto);
 
     ReportDto pickNextReport();
+
+    Integer interactWithReport(InteractionDto interactionDto);
+
 }
