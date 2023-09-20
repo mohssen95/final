@@ -9,7 +9,6 @@ import org.neshan.apireportservice.entity.model.enums.Role;
 @RequiredArgsConstructor
 @Setter
 @Getter
-
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

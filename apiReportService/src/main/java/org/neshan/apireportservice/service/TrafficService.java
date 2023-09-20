@@ -7,7 +7,11 @@ import java.util.List;
 
 public interface TrafficService {
 
-    public TrafficReport addNew(TrafficDto trafficReport) ;
+    TrafficReport addTrafficByOperator(TrafficDto trafficReport) ;
 
     List<TrafficReport> getAll();
+
+    TrafficReport addTrafficByUser(TrafficDto trafficReport);
+
+    TrafficDto pickNextTrafficReport();
 }

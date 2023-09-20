@@ -32,6 +32,13 @@
             <artifactId>hibernate-spatial</artifactId>
             <version>6.1.7.Final</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.amqp/spring-rabbit -->
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit</artifactId>
+            <version>3.0.9</version>
+        </dependency>
+
 
         <dependency>
             <groupId>net.postgis</groupId>

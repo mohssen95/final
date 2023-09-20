@@ -24,8 +24,19 @@ public class ReportApi {
 
 
     @PostMapping("/traffics")
-    public TrafficReport addReport(@RequestBody TrafficDto trafficReport) throws ParseException {
-        return trafficService.addNew(trafficReport);
+    public TrafficReport addReportByUser(@RequestBody TrafficDto trafficDto) throws ParseException {
+        return trafficService.addTrafficByUser(trafficDto);
+    }
+
+
+    @PostMapping("/traffics/operator")
+    public TrafficReport addReportByOperator(@RequestBody TrafficDto trafficReport) throws ParseException {
+        return trafficService.addTrafficByOperator(trafficReport);
+    }
+
+    @GetMapping("/traffics/operator")
+    public TrafficDto getReportByOperator() {
+        return trafficService.pickNextTrafficReport();
     }
 
     @GetMapping("/traffics")
