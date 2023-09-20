@@ -1,11 +1,13 @@
 package org.neshan.apireportservice.service.impl;
 
 
+import org.locationtech.jts.geom.Coordinate;
 import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
 import org.neshan.apireportservice.entity.Interaction;
 import org.neshan.apireportservice.entity.Report;
 import org.neshan.apireportservice.entity.User;
+import org.neshan.apireportservice.entity.model.enums.InteractionType;
 import org.neshan.apireportservice.entity.model.enums.ReportType;
 import org.neshan.apireportservice.entity.model.enums.TrafficLevel;
 import org.neshan.apireportservice.repo.InteractionRepository;
@@ -50,7 +52,7 @@ public class ReportServiceImpl implements ReportService {
             return HttpStatus.BAD_REQUEST.value();
         }
 
-        RAtomicLong fromCache = getKeyIdFromCache(reportDto);
+        RAtomicLong fromCache = getKeyIdFromCache(reportDto.getReportType(), reportDto.getGeom());
 
         if (fromCache.isExists()) {
             // todo handle
@@ -77,7 +79,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public Integer addReportByOperator(ReportDto reportDto) {
 
-        RAtomicLong cachedTraffic = getKeyIdFromCache(reportDto);
+        RAtomicLong cachedTraffic = getKeyIdFromCache(reportDto.getReportType(), reportDto.getGeom());
 
         if (!cachedTraffic.isExists()) {
             //todo ??
@@ -95,8 +97,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
 
-    private RAtomicLong getKeyIdFromCache(ReportDto reportDto) {
-        String keyId = geoUtils.generateHashKey(reportDto, 22);
+    private RAtomicLong getKeyIdFromCache(ReportType reportType, Coordinate coordinate) {
+        String keyId = geoUtils.generateHashKey(reportType, coordinate, 22);
         RAtomicLong atomicLong = redissonClient.getAtomicLong(keyId);
         return atomicLong;
     }
@@ -140,22 +142,49 @@ public class ReportServiceImpl implements ReportService {
             return HttpStatus.NOT_FOUND.value();
         }
 
+        Report report = reportOptional.get();
+        Interaction existingInteraction = interactionRepository.findByReportAndUser(report, userOptional.get());
+
+        if (existingInteraction != null) {
+            return HttpStatus.CONFLICT.value();
+        }
+
+        Coordinate coordinate = new Coordinate(report.getGeom().x, report.getGeom().y);
+        RAtomicLong fromCache = getKeyIdFromCache(report.getReportType(), coordinate);
+        if (!fromCache.isExists()) {
+            return HttpStatus.NOT_FOUND.value();
+        }
+
         Interaction interaction = new Interaction();
         interaction.setUser(userOptional.get());
-        interaction.setReport(reportOptional.get());
+        interaction.setReport(report);
         interaction.setInteractionType(interactionDto.getInteractionType());
 
         interactionRepository.save(interaction);
-
+        changeReportTtl(fromCache, interaction.getInteractionType());
         return HttpStatus.CREATED.value();
     }
 
+    private void changeReportTtl(RAtomicLong fromCache, InteractionType interactionType) {
+
+        if (interactionType.equals(InteractionType.LIKE)) {
+            fromCache.expire(Duration.of(fromCache.remainTimeToLive() + 120000, ChronoUnit.MILLIS));
+        } else {
+            long expirationTimeFinal = fromCache.remainTimeToLive() - 120000;
+            if (expirationTimeFinal > 0) {
+                fromCache.expire(Duration.of(expirationTimeFinal, ChronoUnit.MILLIS));
+            } else {
+                fromCache.delete();
+            }
+
+        }
+    }
 
 
     @Override
     public Timestamp getMostAccidentFullHour(String date) {
         Timestamp mostAccidents = reportRepository.getMostAccidents(Timestamp.valueOf(date));
-        if(mostAccidents==null)return null;
+        if (mostAccidents == null) return null;
         return mostAccidents;
     }
 
