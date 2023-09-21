@@ -56,7 +56,6 @@ public class ReportServiceImpl implements ReportService {
         RAtomicLong fromCache = getKeyIdFromCache(reportDto.getReportType(), reportDto.getGeom());
 
         if (fromCache.isExists()) {
-            // todo handle
             return HttpStatus.CONFLICT.value();
         }
 
@@ -66,7 +65,6 @@ public class ReportServiceImpl implements ReportService {
             fromCache.set(0);
             fromCache.expire(Duration.of(5, ChronoUnit.MINUTES));
             RQueue<ReportDto> reportsToBeHandled = redissonClient.getQueue("reportsQueue");
-
             reportsToBeHandled.add(reportDto);
             return HttpStatus.ACCEPTED.value();
         }
@@ -203,7 +201,6 @@ public class ReportServiceImpl implements ReportService {
         newTraffic.setReportType(reportDto.getReportType());
         newTraffic.setSenderId(reportDto.getSenderId());
         newTraffic.setExtra(reportDto.getExtra());
-
         Report report = reportRepository.save(newTraffic);
 
         fromCache.set(1);

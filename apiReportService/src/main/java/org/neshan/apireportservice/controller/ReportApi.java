@@ -5,7 +5,6 @@ import org.locationtech.jts.io.ParseException;
 import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
 import org.neshan.apireportservice.entity.Report;
-import org.neshan.apireportservice.service.AccidentService;
 import org.neshan.apireportservice.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,8 +22,7 @@ public class ReportApi {
 
     @Autowired
     ReportService reportService;
-    @Autowired
-    AccidentService accidentService;
+
 
 
     @PostMapping("")

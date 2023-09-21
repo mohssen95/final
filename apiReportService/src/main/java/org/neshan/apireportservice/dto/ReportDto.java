@@ -13,7 +13,6 @@ import java.util.Map;
 @Setter
 public class ReportDto {
 
-     int length;
      Coordinate geom;
      long senderId;
      ReportType reportType;
