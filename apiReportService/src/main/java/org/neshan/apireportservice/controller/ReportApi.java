@@ -76,6 +76,10 @@ public class ReportApi {
 
     }
 
+    @GetMapping("/onRoad")
+    public ResponseEntity<List<Report>> getReportsOnRoad(@RequestParam("road") String road) {
+        return ResponseEntity.status(200).body(reportService.getReportsOnRoad(road));
+    }
 
 
 }

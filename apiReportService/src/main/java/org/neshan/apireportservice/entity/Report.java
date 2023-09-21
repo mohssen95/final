@@ -9,8 +9,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.locationtech.jts.geom.Point;
 import org.neshan.apireportservice.entity.model.enums.ReportType;
-import org.postgis.Point;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -22,7 +22,6 @@ import java.util.Set;
 
 @Entity
 @Table(name = "report")
-@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
 @AllArgsConstructor

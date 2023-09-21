@@ -2,6 +2,8 @@ package org.neshan.apireportservice.service.impl;
 
 
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
 import org.neshan.apireportservice.dto.InteractionDto;
 import org.neshan.apireportservice.dto.ReportDto;
 import org.neshan.apireportservice.entity.Interaction;
@@ -15,7 +17,6 @@ import org.neshan.apireportservice.repo.ReportRepository;
 import org.neshan.apireportservice.repo.UserRepository;
 import org.neshan.apireportservice.service.ReportService;
 import org.neshan.apireportservice.utiles.GeoUtils;
-import org.postgis.Point;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RQueue;
 import org.redisson.api.RedissonClient;
@@ -46,7 +47,7 @@ public class ReportServiceImpl implements ReportService {
 
 
     @Override
-    public Integer addReportByUser(ReportDto reportDto) {
+    public Integer addReportByUser(ReportDto reportDto) throws ParseException {
 
         if (reportDto == null || reportDto.getReportType() == null) {
             return HttpStatus.BAD_REQUEST.value();
@@ -77,7 +78,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public Integer addReportByOperator(ReportDto reportDto) {
+    public Integer addReportByOperator(ReportDto reportDto) throws ParseException {
 
         RAtomicLong cachedTraffic = getKeyIdFromCache(reportDto.getReportType(), reportDto.getGeom());
 
@@ -149,7 +150,7 @@ public class ReportServiceImpl implements ReportService {
             return HttpStatus.CONFLICT.value();
         }
 
-        Coordinate coordinate = new Coordinate(report.getGeom().x, report.getGeom().y);
+        Coordinate coordinate = new Coordinate(report.getGeom().getCoordinate().x, report.getGeom().getCoordinate().y);
         RAtomicLong fromCache = getKeyIdFromCache(report.getReportType(), coordinate);
         if (!fromCache.isExists()) {
             return HttpStatus.NOT_FOUND.value();
@@ -188,10 +189,17 @@ public class ReportServiceImpl implements ReportService {
         return mostAccidents;
     }
 
-    private Report cacheAndSaveTrustedTraffic(ReportDto reportDto, RAtomicLong fromCache) {
+    @Override
+    public List<Report> getReportsOnRoad(String road) {
+        return reportRepository.getReportsOnRoad(road);
+    }
+
+    private Report cacheAndSaveTrustedTraffic(ReportDto reportDto, RAtomicLong fromCache) throws ParseException {
         //todo mapstruct
         Report newTraffic = new Report();
-        newTraffic.setGeom(new Point(reportDto.getGeom().x, reportDto.getGeom().y));
+        newTraffic.setGeom((Point) geoUtils.wktToGeometry("POINT ({x} {y})"
+                .replace("{x}", reportDto.getGeom().getX() + "")
+                .replace("{y}", reportDto.getGeom().getY() + "")));
         newTraffic.setReportType(reportDto.getReportType());
         newTraffic.setSenderId(reportDto.getSenderId());
         newTraffic.setExtra(reportDto.getExtra());

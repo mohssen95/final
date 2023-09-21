@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
@@ -17,7 +18,11 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             "    group by date_trunc('hour', timestamp)\n" +
             "    order by count(id) desc\n" +
             "    ) as b\n" +
-            "limit 1",nativeQuery = true)
-
+            "limit 1", nativeQuery = true)
     Timestamp getMostAccidents(@Param("date") Timestamp date);
+
+    @Query(value = "SELECT * from report\n" +
+            "where st_dwithin(report.geom, ST_GeometryFromText(:lineString), 10);", nativeQuery = true)
+    List<Report> getReportsOnRoad(@Param("lineString") String lineString);
+
 }
